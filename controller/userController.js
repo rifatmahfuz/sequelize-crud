@@ -1,96 +1,90 @@
+const { response } = require("express");
 const db = require("../config/database");
 const userModel = require("../models/User");
-// const express = require('express');
-// const app = express();
-// app.use(express.json());
 
-exports.create = (req, res, next) => {
-  userModel
-    .create({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      bio: req.body.bio,
-    })
-    .then((result) => {
-      return res.json({
-        message: "Record created successfully!",
-        status: 200,
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({
-        message: "Unable to create a record!",
-      });
+exports.create = async (req, res, next) => {
+  const data = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    bio: req.body.bio,
+  };
+
+  try {
+    const result = await userModel.create(data);
+    return res.status(201).json({
+      message: "Record created successfully!",
+      response: result,
     });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Unable to create a record!",
+    });
+  }
 };
 
-exports.getAll = (req, res, next) => {
-  userModel
-    .findAll({
+exports.getAll = async (req, res, next) => {
+  try {
+    const result = await userModel.findAll({
       attributes: ["id", "firstName", "lastName", "bio"],
-    })
-    .then((result) => {
-      return res.json(result);
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({});
     });
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: err.message || "Some error occurred while retrieving user data.",
+    });
+  }
 };
 
-exports.getOne = (req, res, next) => {
-  userModel
-    .findOne({
+exports.getOne = async (req, res, next) => {
+  try {
+    const result = await userModel.findOne({
       attributes: ["id", "firstName", "lastName", "bio"],
       where: {
         id: req.params.id,
       },
-    })
-    .then((result) => {
-      return res.json(result);
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({});
     });
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
-exports.deleteOne = (req, res, next) => {
-  userModel
-    .destroy({
+exports.deleteOne = async (req, res, next) => {
+  try {
+    const result = await userModel.destroy({
       where: {
         id: req.params.id,
       },
-    })
-    .then((result) => {
-      return res.json(result);
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({});
     });
+
+    return res.status(200).json({ message: "Deleted Successfully!" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Can not delete due to server error" });
+  }
 };
 
-exports.updateOne = (req, res, next) => {
-  userModel
-    .update(
-      {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        bio: req.body.bio,
+exports.updateOne = async (req, res, next) => {
+  const data = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    bio: req.body.bio,
+  };
+
+  try {
+    const result = await userModel.update(data, {
+      where: {
+        id: req.params.id,
       },
-      {
-        where: {
-          id: req.params.id,
-        },
-      }
-    )
-    .then((result) => {
-      return res.json(result);
-    })
-    .catch((error) => {
-      console.log(error);
-      return res.json({});
     });
+    return res.status(200).json({ message: "Record updated!" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
